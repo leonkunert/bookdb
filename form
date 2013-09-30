@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Formuar</title>
+  <link href='http://fonts.googleapis.com/css?family=Raleway:300' rel='stylesheet' type='text/css'>
+  <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+</head>
+<script type="text/javascript">
+$(function(){
+  var Tags;
+  var Typen;
+
+  $.ajax({
+    type: "GET",
+    url: "https://leon.leo.uberspace.de/couchdb/books/_design/books/_view/stichworte?group=true",
+    contentType: "application/json",
+    dataType: "json",
+    complete: function( req ){
+      if( req.status == 200 ){
+        Tags = req.responseJSON.rows;
+        displayTags(Tags);
+      }else{
+        $( ".status" ).append(req);
+      }
+    }
+  });
+  $.ajax({
+    type: "GET",
+    url: "https://leon.leo.uberspace.de/couchdb/books/_design/books/_view/buchtypen?group=true",
+    contentType: "application/json",
+    dataType: "json",
+    complete: function( req ){
+      if( req.status == 200 ){
+        Typen = req.responseJSON.rows;
+        displayTyps(Typen);
+      }else{
+        $( ".status" ).append(req);
+      }
+    }
+  });
+  function displayTags(result) {
+    var $stichworte = $( "#stichworte" );
+    $stichworte.hide();
+    $stichworte.after('<br /><select class="stichworte_sel"></select>');
+    for (var i = 0; i < result.length; i++) {
+      $('.stichworte_sel').append('<option>'+result[i].key+'</option>');
+    };
+  }
+  function displayTyps(result) {
+    var $typen = $( "#buchtyp" );
+    $typen.hide();
+    $typen.after('<br /><select class="typen_sel"></select>');
+    for (var i = 0; i < result.length; i++) {
+      $('.typen_sel').append('<option>'+result[i].key+'</option>');
+    };
+  }
+  $('.book').on('click', '.stichworte_add', function() {
+    displayTags(Tags);
+  });
+  $('.book').on('click', '.type_add', function() {
+    displayTyps(Typen);
+  });
+});
+</script>
+<style type="text/css">
+  body {
+    font-size: 1.3em;
+    font-family: 'Raleway', sans-serif;
+    font-weight: 300; 
+  }
+  div {
+    float: left;
+    clear: both;
+  }
+  .stichworte_add {
+    float: right;
+  }
+  .type_add {
+    float: right;
+  }
+  span.name {
+    margin-right: 20px;
+  }
+</style>
+<body>
+
+<form class="book" >
+  <div><span class="name" >Titel</span><input id="titel" name="titel" /></div>
+  <div><span class="name" >Regal</span><input id="regal" name="regal" /></div>
+  <div><span class="name" >Nr</span><input id="nr" name="nr" /></div>
+  <div><span class="name" >Illustrator</span><input id="illustrator" name="illustrator" /></div>
+  <div><span class="name" >Text</span><input id="text" name="text" /></div>
+  <div><span class="name" >Druckdatum</span><input id="druckdatum" name="druckdatum" /></div>
+  <div><span class="name" >Auflage</span><input id="auflage" name="auflage" /></div>
+  <div><span class="name" >Verlag</span><input id="verlag" name="verlag" /></div>
+  <div><span class="name" >Buchtyp</span><div class="type_add">+</div><input id="buchtyp" name="buchtyp" /></div>
+  <div><span class="name">Stichworte</span><div class="stichworte_add">+</div><input id="stichworte" name="stichworte" /></div>
+  <div><span class="name" >Land / Region</span><input id="land / region"  name="land / region" /></div>
+  <div><span class="name" >Zuordnung</span><input id="zuordnung" name="zuordnung" /></div>
+</form>
+
+</body>
+</html>

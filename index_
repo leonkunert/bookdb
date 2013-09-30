@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Couch test</title>
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script type="text/javascript">
+    $(function() {
+        //Get context with jQuery - using jQuery's .get() method.
+        var ctx = $("#myChart").get(0).getContext("2d");
+        //This will get the first returned node in the jQuery collection.
+        var myNewChart = new Chart(ctx);
+        $.ajax({
+            type: "GET",
+            url: "https://leon.leo.uberspace.de/couchdb/books/_design/books/_view/buchtypen?group=true",
+            contentType: "application/json",
+            dataType: "json",
+            complete: function( req ){
+                if( req.status == 200 ){
+                    displayBooks(req.responseJSON.rows);
+                }else{
+                    $( ".status" ).append(req);
+                }
+            }
+        });
+
+        function dataPie(values) {
+            var data = [],
+                _data = {};
+            for (var i = 0; i < values.length; i++) {
+                _data = new pieData(values[i].value, values[i].key);
+                data.push(_data);
+            };
+            return data;
+        }
+
+        function buildPieLegend(data) {
+            data.reverse();
+            for (var i = 0; i < data.length; i++) {
+                $( ".legend" ).hide().append('<div class="LegendData"><div class="LegendDataName">'+data[i].name+' '+data[i].value+'</div><div class="LegendDataColor" style="background-color:'+data[i].color+';"></div></div>');
+            };
+            $( ".legend" ).fadeIn(1000); 
+        }
+
+        function pieData(value, name){
+            this.value = value;
+            this.name  = name;
+            this.color = get_random_color();
+        }
+
+        function displayBooks(response) {
+            response.sort(sortFunc);
+            var data = dataPie(response);
+            new Chart(ctx).Pie(data,{segmentStrokeWidth : 0, animateScale : true});
+            buildPieLegend(data);
+        }
+
+        function get_random_color() {
+            var letters = '0123456789ABCDEF'.split('');
+            var color = '#';
+            for (var i = 0; i < 6; i++ ) {
+                color += letters[Math.round(Math.random() * 15)];
+            }
+            return color;
+        }
+
+        function invertColor(hexTripletColor) {
+            var color = hexTripletColor;
+            color = color.substring(1);           // remove #
+            color = parseInt(color, 16);          // convert to integer
+            color = 0xFFFFFF ^ color;             // invert three bytes
+            color = color.toString(16);           // convert to hex
+            color = ("000000" + color).slice(-6); // pad with leading zeros
+            color = "#" + color;                  // prepend #
+            return color;
+        }
+
+        function putJSON(json) {
+            for (var i = 0; i < json.length; i++) {
+                putDocument(json[i]);
+            };
+        }
+
+        function sortFunc(a, b) {
+            return a.value - b.value;
+        }
+
+        function putDocument(object) {
+            console.log(object);
+            $.ajax({
+                url: 'https://leon.leo.uberspace.de/couchdb/books',
+                type: 'POST',
+                dataType: 'json',
+                contentType: "application/json",
+                data: JSON.stringify(object)
+            }).always(function() {
+                console.log("complete");
+            });
+        }
+    });
+</script>
+<style type="text/css">
+    #myChart {
+        float: left;
+    }
+    .legend {
+        padding: 10px;
+    }
+    .LegendData {
+        border-radius: 5px;
+        margin-bottom: 5px;
+        margin-top: 5px;
+        margin-left: 600px;
+        padding-top: 5px;
+        height: 20px;
+    }
+    .LegendDataName {
+        float: left;
+    }
+    .LegendDataColor {
+        width: 30%;
+        height: 15px;
+        box-shadow: inset 1px 1px 8px black;
+        border-radius: 10px;
+        float: right;
+    }
+</style>
+</head>
+<body>
+
+<h1>CouchDb Test:</h1>
+<canvas width="600px" height="600px" id="myChart"></canvas>
+<div class="legend">Legende:<br /></div>
+<script type="text/javascript" src="charts.js"></script>
+</body>
+</html>
